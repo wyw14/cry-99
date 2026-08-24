@@ -7,9 +7,16 @@ import (
 )
 
 func RestoreOperation(snapshot model.Snapshot, queue *switchgear.Queue) Operation {
-	queue.RestoreBoundary(snapshot.Commands, 0)
+	next := snapshot.NextCommand
+	if next < 0 {
+		next = 0
+	}
+	if next > len(snapshot.Commands) {
+		next = len(snapshot.Commands)
+	}
+	queue.RestoreBoundary(snapshot.Commands, next)
 	pending := journal.PendingCommands(snapshot)
-	return Operation{Commands: append([]model.Command(nil), snapshot.Commands...), Next: 0, Complete: len(pending) == 0}
+	return Operation{Commands: append([]model.Command(nil), snapshot.Commands...), Next: next, Complete: len(pending) == 0}
 }
 
 func ResumeCommands(snapshot model.Snapshot) []model.Command {
