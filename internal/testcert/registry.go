@@ -8,7 +8,7 @@ import (
 func (r *Registry) ValidForArea(area model.Area, revision string, now time.Time) (model.Certificate, bool) {
 	if revision == "" {
 		for _, candidate := range r.All() {
-			if candidate.AreaID == area.ID && Fresh(candidate, now) && containsScope(candidate.Scope, area.Boundaries) {
+			if candidate.AreaID == area.ID && Fresh(candidate, now) && ScopeMatches(candidate, area) {
 				return candidate, true
 			}
 		}
@@ -19,19 +19,6 @@ func (r *Registry) ValidForArea(area model.Area, revision string, now time.Time)
 		return model.Certificate{}, false
 	}
 	return c, true
-}
-
-func containsScope(have, need []string) bool {
-	set := make(map[string]struct{}, len(have))
-	for _, item := range have {
-		set[item] = struct{}{}
-	}
-	for _, item := range need {
-		if _, ok := set[item]; !ok {
-			return false
-		}
-	}
-	return true
 }
 
 func (r *Registry) All() []model.Certificate {
